@@ -1,0 +1,14 @@
+services:
+  tool-consegne:
+    build: .
+    container_name: tool-consegne
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_USER: admin
+      APP_PASSWORD: cambiaquesta
+      APP_SECRET: cambia-questa-chiave-lunga
+      DATABASE_URL: sqlite:///./data/consegne.db
+    volumes:
+      - ./data:/app/data
