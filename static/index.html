@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>GiroFacile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="/static/style.css?v=34" rel="stylesheet">
+</head>
+<body>
+
+<section id="loginCard" class="login-screen">
+  <div class="login-panel">
+    <div class="brand-login">
+      <div class="brand-mark">GF</div>
+      <div>
+        <h1>Giro<span>Facile</span></h1>
+        <p>Gestionale percorsi e consegne</p>
+      </div>
+    </div>
+
+    <h2>Accesso riservato</h2>
+    <label>Utente</label>
+    <input id="loginUser" value="admin">
+
+    <label>Password</label>
+    <input id="loginPass" type="password" value="admin123">
+
+    <button onclick="login()" class="btn-primary full">Entra nel gestionale</button>
+  </div>
+</section>
+
+<section id="app" class="app-shell hidden">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-title">Giro<span>Facile</span></div>
+    </div>
+
+    <nav class="side-nav">
+      <button onclick="showTab('giro')" class="nav-item active"><span>▦</span> Dashboard</button>
+      <button onclick="showTab('giro')" class="nav-item"><span>▣</span> Giri consegne</button>
+      <button onclick="showTab('clienti')" class="nav-item"><span>☷</span> Clienti</button>
+      <button onclick="showTab('depositi')" class="nav-item"><span>⌂</span> Depositi</button>
+      <button onclick="showTab('mezzi')" class="nav-item"><span>▤</span> Mezzi</button>
+      <button onclick="showTab('storico')" class="nav-item"><span>◷</span> Storico</button>
+    </nav>
+
+    <div class="side-footer">© 2026 GiroFacile<br>v3.4</div>
+  </aside>
+
+  <main class="main-area">
+    <header class="topbar">
+      <div class="search-box">
+        <span>⌕</span>
+        <input placeholder="Cerca giri, clienti, indirizzi...">
+      </div>
+
+      <div class="top-actions">
+        <button id="logoutBtn" class="btn-light hidden">Esci</button>
+        <button class="profile profile-button" onclick="openProfilePanel()" title="Apri profilo account">
+          <div id="topProfileAvatar" class="avatar">A</div>
+          <div>
+            <strong id="topProfileName">Admin</strong>
+            <small id="topProfileRole">Amministratore</small>
+          </div>
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <section id="tab-giro" class="tab">
+        <div class="page-title-row">
+          <div>
+            <h1>Nuovo giro consegne</h1>
+            <p>Organizza il percorso, controlla orari di scarico e costo carburante.</p>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">▣</div>
+            <div>
+              <span>Consegne pianificate</span>
+              <strong id="statDeliveries">0</strong>
+              <small>Nel giro corrente</small>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon orange">◷</div>
+            <div>
+              <span>Attese / avvisi</span>
+              <strong id="statWarnings">0</strong>
+              <small>Da verificare</small>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon green">✓</div>
+            <div>
+              <span>Colli totali</span>
+              <strong id="statColli">0</strong>
+              <small>Carico inserito</small>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon purple">⛽</div>
+            <div>
+              <span>Carburante</span>
+              <strong id="statFuel">€ / L</strong>
+              <small>Prezzo impostato</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="giro-layout">
+          <div class="left-column">
+            <section class="panel">
+              <div class="panel-header">
+                <h2>Dettagli giro consegne</h2>
+              </div>
+
+              <div class="form-grid">
+                <div><label>Nome giro</label><input id="routeName" placeholder="Giro mattina"></div>
+                <div><label>Data</label><input id="routeDate" type="date"></div>
+                <div><label>Orario partenza</label><input id="routeStart" type="time" value="08:00"></div>
+                <div><label>Deposito</label><select id="routeDeposit"></select></div>
+                <div><label>Mezzo</label><select id="routeVehicle"></select></div>
+                <div><label>Prezzo carburante €/L</label><input id="fuelPrice" type="number" step="0.01" value="1.75"></div>
+                <div><label>Rientro deposito</label><select id="returnDepot"><option value="true">Sì, rientro previsto</option><option value="false">No</option></select></div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <h2 id="deliveryFormTitle">Aggiungi consegna</h2>
+              </div>
+
+              <div class="form-grid add-grid">
+                <div><label>Cerca cliente</label><input id="customerSearch" placeholder="Digita per cercare..." oninput="searchCustomersForDelivery()"><div id="customerSuggestions" class="suggestions"></div></div>
+                <div><label>Cliente</label><input id="dCliente" placeholder="Seleziona cliente"></div>
+                <div><label>Indirizzo</label><input id="dIndirizzo" placeholder="Indirizzo di consegna"></div>
+                <div class="time-window-field"><label>Scarico mattina</label><div class="time-range"><span>Dalle</span><input id="dMattinaDa" type="time"><span>Alle</span><input id="dMattinaA" type="time"></div></div>
+                <div class="time-window-field"><label>Scarico pomeriggio</label><div class="time-range"><span>Dalle</span><input id="dPomeriggioDa" type="time"><span>Alle</span><input id="dPomeriggioA" type="time"></div></div>
+                <div><label>Tempo scarico min</label><input id="dScarico" type="number" value="10"></div>
+                <div><label>Peso kg</label><input id="dPeso" type="number" value="0"></div>
+                <div><label>Colli</label><input id="dColli" type="number" value="0"></div>
+                <div><label>ZTL</label><select id="dZtl"><option value="false">No</option><option value="true">Sì</option></select></div>
+                <div><label>Sponda richiesta</label><select id="dSponda"><option value="false">No</option><option value="true">Sì</option></select></div>
+              </div>
+
+              <label>Note</label>
+              <textarea id="dNote" rows="2" placeholder="Note aggiuntive..."></textarea>
+
+              <div class="actions-row">
+                <button id="cancelEditDeliveryBtn" onclick="cancelDeliveryEdit()" class="btn-secondary hidden">Annulla modifica</button>
+                <button id="saveDeliveryBtn" onclick="addDelivery()" class="btn-primary">+ Aggiungi consegna</button>
+              </div>
+            </section>
+          </div>
+
+          <aside class="right-summary">
+            <div class="summary-card">
+              <h2>Riepilogo giro</h2>
+              <div class="summary-row"><span>Fermate pianificate</span><strong id="summaryStops">0</strong></div>
+              <div class="summary-row"><span>Km stimati</span><strong id="summaryKm">-</strong></div>
+              <div class="summary-row"><span>Durata stimata</span><strong id="summaryTime">-</strong></div>
+              <div class="summary-row"><span>Carico totale</span><strong id="summaryKg">0 kg</strong></div>
+              <div class="summary-row"><span>Colli totali</span><strong id="summaryColli">0</strong></div>
+              <div class="summary-highlight">
+                <span>Costo carburante stimato</span>
+                <strong id="summaryCost">-</strong>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <section class="panel wide">
+          <div class="panel-header">
+            <h2>Consegne nel giro</h2>
+          </div>
+
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Indirizzo</th>
+                  <th>Fascia scarico</th>
+                  <th>Scarico</th>
+                  <th>ZTL</th>
+                  <th>Sponda</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="deliveryBody"></tbody>
+            </table>
+          </div>
+
+          <div class="actions-row">
+            <button class="btn-primary large" onclick="optimizeRoute()">Calcola percorso</button>
+          </div>
+
+          <div id="routeResult"></div>
+        </section>
+      </section>
+
+      <section id="tab-clienti" class="tab hidden">
+        <div class="page-title-row"><div><h1>Clienti</h1><p>Anagrafica clienti e fasce orarie di scarico.</p></div></div>
+
+        <section class="panel">
+          <input type="hidden" id="cId">
+          <div class="form-grid">
+            <input id="cCodice" placeholder="Codice cliente">
+            <input id="cNome" placeholder="Nome / ragione sociale">
+            <input id="cIndirizzo" placeholder="Indirizzo">
+            <input id="cComune" placeholder="Comune">
+            <input id="cTelefono" placeholder="Telefono">
+            <input id="cReferente" placeholder="Referente">
+            <div class="time-window-field"><label>Scarico mattina</label><div class="time-range"><span>Dalle</span><input id="cMattinaDa" type="time"><span>Alle</span><input id="cMattinaA" type="time"></div></div>
+            <div class="time-window-field"><label>Scarico pomeriggio</label><div class="time-range"><span>Dalle</span><input id="cPomeriggioDa" type="time"><span>Alle</span><input id="cPomeriggioA" type="time"></div></div>
+            <input id="cScarico" type="number" value="10" placeholder="Tempo scarico">
+            <select id="cZtl"><option value="false">ZTL No</option><option value="true">ZTL Sì</option></select>
+            <select id="cSponda"><option value="false">Sponda No</option><option value="true">Sponda Sì</option></select>
+          </div>
+
+          <textarea id="cNote" rows="2" placeholder="Note consegna"></textarea>
+          <div class="actions-row"><button onclick="saveCustomer()" class="btn-primary">Salva cliente</button><button onclick="resetCustomerForm()" class="btn-secondary">Nuovo</button></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header"><h2>Import clienti CSV/Excel</h2></div>
+          <input type="file" id="importFile" accept=".csv,.xlsx,.xls">
+          <button onclick="importCustomers()" class="btn-primary">Importa</button>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header"><h2>Elenco clienti</h2></div>
+          <input id="customerListSearch" placeholder="Cerca cliente" oninput="loadCustomers()">
+          <div class="tableWrap">
+            <table>
+              <thead><tr><th>Codice</th><th>Nome</th><th>Indirizzo</th><th>Scarico</th><th>ZTL</th><th>Sponda</th><th></th></tr></thead>
+              <tbody id="customersBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-depositi" class="tab hidden">
+        <div class="page-title-row"><div><h1>Depositi</h1><p>Gestisci indirizzi di partenza e rientro.</p></div></div>
+        <section class="panel">
+          <input type="hidden" id="depId">
+          <div class="form-grid">
+            <input id="depNome" placeholder="Nome deposito">
+            <input id="depIndirizzo" placeholder="Indirizzo completo">
+          </div>
+          <label class="checkbox-label"><input id="depDefault" type="checkbox"> deposito predefinito</label>
+          <div class="actions-row"><button onclick="saveDeposit()" class="btn-primary">Salva deposito</button><button onclick="resetDepositForm()" class="btn-secondary">Nuovo</button></div>
+          <div class="tableWrap"><table><thead><tr><th>Nome</th><th>Indirizzo</th><th>Default</th><th></th></tr></thead><tbody id="depositsBody"></tbody></table></div>
+        </section>
+      </section>
+
+      <section id="tab-mezzi" class="tab hidden">
+        <div class="page-title-row"><div><h1>Mezzi</h1><p>Configura consumi, capacità e accessori dei mezzi.</p></div></div>
+        <section class="panel">
+          <input type="hidden" id="vId">
+          <div class="form-grid">
+            <input id="vNome" placeholder="Nome mezzo">
+            <input id="vTarga" placeholder="Targa">
+            <input id="vConsumo" type="number" step="0.1" value="8.5" placeholder="Consumo L/100km">
+            <input id="vKg" type="number" value="1000" placeholder="Capacità kg">
+            <input id="vColli" type="number" value="100" placeholder="Capacità colli">
+            <select id="vSponda"><option value="false">Sponda No</option><option value="true">Sponda Sì</option></select>
+            <select id="vZtl"><option value="false">ZTL No</option><option value="true">ZTL Sì</option></select>
+          </div>
+          <div class="actions-row"><button onclick="saveVehicle()" class="btn-primary">Salva mezzo</button><button onclick="resetVehicleForm()" class="btn-secondary">Nuovo</button></div>
+          <div class="tableWrap"><table><thead><tr><th>Mezzo</th><th>Targa</th><th>Consumo</th><th>Sponda</th><th>ZTL</th><th></th></tr></thead><tbody id="vehiclesBody"></tbody></table></div>
+        </section>
+      </section>
+
+      <section id="tab-storico" class="tab hidden">
+        <div class="page-title-row"><div><h1>Storico giri</h1><p>Consulta i percorsi calcolati e riapri Google Maps.</p></div></div>
+        <section class="panel">
+          <button onclick="loadRoutes()" class="btn-primary">Aggiorna storico</button>
+          <div class="tableWrap"><table><thead><tr><th>Data</th><th>Nome</th><th>Partenza</th><th>Rientro</th><th>Km</th><th>Costo carburante</th><th>Azioni</th></tr></thead><tbody id="routesBody"></tbody></table></div>
+          <div id="historyResult"></div>
+        </section>
+      </section>
+
+    </div>
+  </main>
+</section>
+
+
+<div id="profileOverlay" class="modal-overlay hidden" onclick="closeProfilePanel(event)">
+  <div class="profile-modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>Profilo account</h2>
+        <p>Gestisci le informazioni del profilo collegato a GiroFacile.</p>
+      </div>
+      <button class="modal-close" onclick="closeProfilePanel()">×</button>
+    </div>
+
+    <div class="profile-photo-row">
+      <div id="profilePreview" class="profile-preview">A</div>
+      <div>
+        <label>Fotografia profilo</label>
+        <input id="profilePhoto" type="file" accept="image/*" onchange="previewProfilePhoto(event)">
+        <small>La foto viene salvata localmente sul browser.</small>
+      </div>
+    </div>
+
+    <div class="form-grid profile-grid">
+      <div><label>Nome visualizzato</label><input id="profileName" placeholder="Admin"></div>
+      <div><label>Email</label><input id="profileEmail" type="email" placeholder="nome@email.it"></div>
+      <div><label>Ruolo</label><input id="profileRole" value="Amministratore" readonly></div>
+      <div><label>Nuova password</label><input id="profilePassword" type="password" placeholder="Lascia vuoto per non cambiarla"></div>
+    </div>
+
+    <div class="profile-note">
+      In questa versione il profilo viene salvato sul browser. Quando GiroFacile sarà online su Hetzner, potremo collegare questi dati al database utenti.
+    </div>
+
+    <div class="actions-row">
+      <button class="btn-secondary" onclick="closeProfilePanel()">Chiudi</button>
+      <button class="btn-primary" onclick="saveProfilePanel()">Salva profilo</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js?v=34"></script>
+</body>
+</html>
